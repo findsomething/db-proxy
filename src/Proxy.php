@@ -41,8 +41,13 @@ class Proxy implements ProxyExecute
                 }
                 return call_user_func_array([$this->storage, $method], $args);
             } catch (\PDOException $e) {
+                $this->logger->info('execute error', [
+                    'error' => $e->getMessage(),
+                    'code' => $e->getCode(),
+                    'method' => $method,
+                    'args' => $args
+                ]);
                 if (!$this->checkReconnect()) {
-                    var_dump('eeeee');
                     throw $e;
                 }
                 $ok = false;
