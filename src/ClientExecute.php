@@ -7,6 +7,8 @@
  */
 namespace Fsth\DbProxy;
 
+use Doctrine\DBAL\Connection;
+
 interface ClientExecute
 {
     function connect();
@@ -14,6 +16,11 @@ interface ClientExecute
     function reconnect();
 
     function disconnect();
+
+    /**
+     * @return Connection
+     */
+    function source();
 
     function __call($method, $args);
 }

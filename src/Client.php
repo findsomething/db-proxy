@@ -39,6 +39,11 @@ class Client implements ClientExecute
         $this->disconnect();
     }
 
+    public function source()
+    {
+        return $this->db;
+    }
+
     public function connect()
     {
         // TODO: Implement connect() method.
