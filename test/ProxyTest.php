@@ -46,16 +46,15 @@ class ProxyTest extends \PHPUnit_Framework_TestCase
 
         $this->proxy->disconnect();
 
-
         $error = "";
         try {
-            $this->get($result['id']);
+            $result = $this->get($result['id']);
         } catch (\Exception $e) {
             $error = $e->getMessage();
         }
         $this->assertEmpty($error);
+        $this->assertNotEmpty($result);
 
-        $this->proxy->reconnect();
         $otherResult = $this->get($result['id']);
         $this->assertEquals($otherResult['test_column'], $this->value);
     }
@@ -116,7 +115,6 @@ class FakeLogger implements \Psr\Log\LoggerInterface
 
     public function info($message, array $context = array())
     {
-
     }
 
     public function debug($message, array $context = array())

@@ -7,6 +7,7 @@
  */
 namespace FSth\DbProxy;
 
+use Doctrine\DBAL\Driver\PDOException;
 use Doctrine\DBAL\DriverManager;
 use Doctrine\DBAL\Connection;
 
@@ -82,10 +83,14 @@ class Client implements ClientExecute
     public function __call($method, $args)
     {
         // TODO: Implement __call() method.
-        if ($this->valid()) {
-            return call_user_func_array([$this->db, $method], $args);
+        try {
+            if ($this->valid()) {
+                return call_user_func_array([$this->db, $method], $args);
+            }
+        } catch (\Exception $e) {
+            throw new DbException($e->getMessage(), $e->getCode());
         }
-        throw new \PDOException("execute {$method} failed");
+        throw new DbException("execute {$method} failed");
     }
 
     private function valid()

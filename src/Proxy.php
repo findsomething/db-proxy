@@ -40,7 +40,7 @@ class Proxy implements ProxyExecute
                     $ok = true;
                 }
                 return call_user_func_array([$this->storage, $method], $args);
-            } catch (\PDOException $e) {
+            } catch (DbException $e) {
                 $this->logger->info('execute error', [
                     'error' => $e->getMessage(),
                     'code' => $e->getCode(),
@@ -66,11 +66,11 @@ class Proxy implements ProxyExecute
         ));
     }
 
-    private function checkReconnect()
+    public function checkReconnect()
     {
         $reconnect = false;
         try {
-            if ($this->storage->ping() === false) {
+            if (empty($this->storage->source()) || $this->storage->ping() === false) {
                 $reconnect = true;
             }
         } catch (\Exception $e) {
