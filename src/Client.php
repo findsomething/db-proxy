@@ -69,6 +69,7 @@ class Client implements ClientExecute
         } catch (\Exception $e) {
 
         } finally {
+            unset($this->db);
             $this->db = null;
         }
     }
