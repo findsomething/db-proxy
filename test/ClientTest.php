@@ -44,7 +44,7 @@ class ClientTest extends \PHPUnit_Framework_TestCase
         $this->client->disconnect();
         $error = "";
         try {
-            $this->client->get($result['id']);
+            $this->get($result['id']);
         } catch (\Exception $e) {
             $error = $e->getMessage();
         }

@@ -7,6 +7,8 @@
  */
 namespace FSth\DbProxy;
 
+use Doctrine\DBAL\Connection;
+
 class Proxy implements ProxyExecute
 {
     protected $maxReconnectTimes = 3;
@@ -34,7 +36,7 @@ class Proxy implements ProxyExecute
 
         do {
             try {
-                if ($ok == false) {
+                if (!$ok) {
                     $reconnectTimes++;
                     $this->storage->reconnect();
                     $ok = true;
@@ -47,7 +49,7 @@ class Proxy implements ProxyExecute
                     'method' => $method,
                     'args' => $args
                 ]);
-                if (!$this->checkReconnect()) {
+                if (!$this->needReconnect($e)) {
                     throw $e;
                 }
                 $ok = false;
@@ -58,7 +60,7 @@ class Proxy implements ProxyExecute
                     sleep($this->sleepTime);
                 }
             }
-        } while ($ok === false && $reconnectTimes < $this->maxReconnectTimes);
+        } while (!$ok && $reconnectTimes < $this->maxReconnectTimes);
 
         $this->logger->error("redis reconnect execute error", array(
             'method' => $method,
@@ -66,16 +68,19 @@ class Proxy implements ProxyExecute
         ));
     }
 
-    public function checkReconnect()
+    private function needReconnect(\Exception $e)
     {
-        $reconnect = false;
+        if (strpos($e->getMessage(), "server has gone away") !== false) {
+            return true;
+        }
         try {
-            if (empty($this->storage->source()) || $this->storage->ping() === false) {
-                $reconnect = true;
+            if (empty($this->storage->source()) || !($this->storage->source() instanceof Connection) ||
+                $this->storage->ping() === false) {
+                return true;
             }
         } catch (\Exception $e) {
-            $reconnect = true;
+            return true;
         }
-        return $reconnect;
+        return false;
     }
 }
