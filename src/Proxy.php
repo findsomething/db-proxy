@@ -33,6 +33,7 @@ class Proxy implements ProxyExecute
         // TODO: Implement __call() method.
         $ok = true;
         $reconnectTimes = 0;
+        $exception = null;
 
         do {
             try {
@@ -43,12 +44,15 @@ class Proxy implements ProxyExecute
                 }
                 return call_user_func_array([$this->storage, $method], $args);
             } catch (DbException $e) {
-                $this->logger->info('execute error', [
-                    'error' => $e->getMessage(),
-                    'code' => $e->getCode(),
-                    'method' => $method,
-                    'args' => $args
-                ]);
+                $exception = $e;
+                if ($reconnectTimes >= 1) {
+                    $this->logger->info('db execute error', [
+                        'error' => $e->getMessage(),
+                        'code' => $e->getCode(),
+                        'method' => $method,
+                        'args' => $args
+                    ]);
+                }
                 if (!$this->needReconnect($e)) {
                     throw $e;
                 }
@@ -62,10 +66,11 @@ class Proxy implements ProxyExecute
             }
         } while (!$ok && $reconnectTimes < $this->maxReconnectTimes);
 
-        $this->logger->error("redis reconnect execute error", array(
+        $this->logger->error("db reconnect execute error", array(
             'method' => $method,
             'args' => $args,
         ));
+        throw $exception;
     }
 
     private function needReconnect(\Exception $e)
@@ -75,7 +80,8 @@ class Proxy implements ProxyExecute
         }
         try {
             if (empty($this->storage->source()) || !($this->storage->source() instanceof Connection) ||
-                $this->storage->ping() === false) {
+                $this->storage->ping() === false
+            ) {
                 return true;
             }
         } catch (\Exception $e) {
