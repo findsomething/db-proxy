@@ -89,7 +89,7 @@ class Client implements ClientExecute
                 return call_user_func_array([$this->db, $method], $args);
             }
         } catch (\Exception $e) {
-            throw new DbException($e->getMessage(), $e->getCode());
+            throw new DbException($e->getMessage(), intval($e->getCode()));
         }
         throw new DbException("execute {$method} failed");
     }
