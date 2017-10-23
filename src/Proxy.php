@@ -75,7 +75,9 @@ class Proxy implements ProxyExecute
 
     private function needReconnect(\Exception $e)
     {
-        if (strpos($e->getMessage(), "server has gone away") !== false) {
+        if (strpos($e->getMessage(), "server has gone away") !== false
+            || strpos(strtolower($e->getMessage()), 'sqlstate') !== false
+        ) {
             return true;
         }
         try {
