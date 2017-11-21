@@ -55,14 +55,6 @@ class Proxy implements ProxyExecute
                 return call_user_func_array([$this->storage, $method], $args);
             } catch (DbException $e) {
                 $exception = $e;
-                if ($reconnectTimes > 1) {
-                    $this->logger->info('db execute error', [
-                        'error' => $e->getMessage(),
-                        'code' => $e->getCode(),
-                        'method' => $method,
-                        'args' => $args
-                    ]);
-                }
                 if (!$this->needReconnect($e)) {
                     throw $e;
                 }
