@@ -34,7 +34,8 @@ class ProxyTest extends \PHPUnit_Framework_TestCase
         $this->client = new \FSth\DbProxy\Client($this->dbName, $this->user, $this->password, $this->host, $this->port);
         $this->proxy = new \FSth\DbProxy\Proxy($this->client);
         $this->proxy->setLogger(new FakeLogger());
-        $this->proxy->connect();
+        $this->proxy->setSleepTime(100);
+//        $this->proxy->connect();
 
         $this->truncate();
     }

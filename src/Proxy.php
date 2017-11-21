@@ -11,21 +11,31 @@ use Doctrine\DBAL\Connection;
 
 class Proxy implements ProxyExecute
 {
+    const MIN_MICROSECOND = 10;
+
     protected $maxReconnectTimes = 3;
     protected $storage;
     protected $logger;
-    protected $sleep = true;
-    protected $sleepTime = 1;
+    protected $sleep;
+    protected $sleepTime;
 
     public function __construct(Client $storage)
     {
         $this->storage = $storage;
+
+        $this->sleep = true;
+        $this->sleepTime = self::MIN_MICROSECOND;
     }
 
     public function setLogger($logger)
     {
         // TODO: Implement setLogger() method.
         $this->logger = $logger;
+    }
+
+    public function setSleepTime($sleepTime)
+    {
+        $this->sleepTime = max($sleepTime, self::MIN_MICROSECOND);
     }
 
     public function __call($method, $args)
@@ -45,7 +55,7 @@ class Proxy implements ProxyExecute
                 return call_user_func_array([$this->storage, $method], $args);
             } catch (DbException $e) {
                 $exception = $e;
-                if ($reconnectTimes >= 1) {
+                if ($reconnectTimes > 1) {
                     $this->logger->info('db execute error', [
                         'error' => $e->getMessage(),
                         'code' => $e->getCode(),
@@ -61,9 +71,10 @@ class Proxy implements ProxyExecute
 
             if ($reconnectTimes > 1) {
                 if ($this->sleep) {
-                    sleep($this->sleepTime);
+                    usleep($this->getRandMicroSecond());
                 }
             }
+            
         } while (!$ok && $reconnectTimes < $this->maxReconnectTimes);
 
         $this->logger->error("db reconnect execute error", array(
@@ -90,5 +101,10 @@ class Proxy implements ProxyExecute
             return true;
         }
         return false;
+    }
+
+    private function getRandMicroSecond()
+    {
+        return rand(self::MIN_MICROSECOND, $this->sleepTime) * 1000;
     }
 }
