@@ -72,6 +72,8 @@ class Proxy implements ProxyExecute
         $this->logger->error("db reconnect execute error", array(
             'method' => $method,
             'args' => $args,
+            'error' => $exception->getMessage(),
+            'code' => $exception->getCode()
         ));
         throw $exception;
     }
